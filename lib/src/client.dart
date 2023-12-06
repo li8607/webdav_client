@@ -73,7 +73,7 @@ class Client {
 
   /// Read a single files properties
   Future<File> readProps(String path, [CancelToken? cancelToken]) async {
-    path = fixSlashes(path);
+    // path = fixSlashes(path);
     var resp = await this
         .c
         .wdPropfind(this, path, true, fileXmlStr, cancelToken: cancelToken);
