@@ -433,11 +433,11 @@ class WdDio with DioMixin implements Dio {
         await subscription.cancel();
         await _closeAndDelete();
         if (err is TimeoutException) {
-          throw DioError(
+          throw DioException(
             requestOptions: resp.requestOptions,
             error:
                 'Receiving data timeout[${resp.requestOptions.receiveTimeout}ms]',
-            type: DioErrorType.receiveTimeout,
+            type: DioExceptionType.receiveTimeout,
           );
         } else {
           throw err;
@@ -445,6 +445,46 @@ class WdDio with DioMixin implements Dio {
       });
     }
     await DioMixin.listenCancelForAsyncTask(cancelToken, future);
+  }
+
+  Future<Response<ResponseBody>> readStream(
+    Client self,
+    String path, {
+    Map<String, String> headers = const {},
+    CancelToken? cancelToken,
+  }) async {
+    // fix auth error
+    var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
+    if (pResp.statusCode != 200) {
+      throw newResponseError(pResp);
+    }
+    Response<ResponseBody> resp;
+    try {
+      resp = await this.req(
+        self,
+        'GET',
+        path,
+        optionsHandler: (options) {
+          options.responseType = ResponseType.stream;
+          options.headers?.addAll(headers);
+        },
+        cancelToken: cancelToken,
+      );
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.badResponse) {
+        if (e.response!.requestOptions.receiveDataWhenStatusError == true) {
+          var res = await transformer.transformResponse(
+            e.response!.requestOptions..responseType = ResponseType.json,
+            e.response!.data as ResponseBody,
+          );
+          e.response!.data = res;
+        } else {
+          e.response!.data = null;
+        }
+      }
+      rethrow;
+    }
+    return resp;
   }
 
   /// write a file with bytes

@@ -181,6 +181,19 @@ class Client {
         );
   }
 
+  Future<Response<ResponseBody>> readStream(
+    String path, {
+    Map<String, String> headers = const {},
+    CancelToken? cancelToken,
+  }) {
+    return this.c.readStream(
+          this,
+          path,
+          headers: headers,
+          cancelToken: cancelToken,
+        );
+  }
+
   /// Write the bytes to remote path
   Future<void> write(
     String path,
