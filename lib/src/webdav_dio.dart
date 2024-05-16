@@ -159,7 +159,7 @@ class WdDio with DioMixin implements Dio {
   // OPTIONS
   Future<Response> wdOptions(Client self, String path,
       {CancelToken? cancelToken}) {
-    return this.req(self, 'OPTIONS', "$path/",
+    return this.req(self, 'OPTIONS', "$path",
         optionsHandler: (options) => options.headers?['depth'] = '0',
         cancelToken: cancelToken);
   }
